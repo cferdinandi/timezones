@@ -1208,16 +1208,36 @@ td {
   }
 }
 
+
+/**
+ * @section Timezones
+ * Styles for timezones
+ */
+
+.timezone {
+  border-top: 1px solid #e5e5e5;
+  margin: 0 -8px;
+  padding: 8px 5px;
+}
+
+.timezone:first-child {
+  border-top: none;
+}
+
+/*.timezone {
+  margin-bottom: 0.5em;
+}*/
+
+.timezone.local {
+  background-color: #f7f7f7;
+  /*margin: -5px -8px;
+  padding: 5px 8px;*/
+}
+
 /**
  * @section Overrides
  * Nudge and tweak alignment, spacing, and visibility.
  */
-
-.local {
-  background-color: #f7f7f7;
-  margin: -5px -8px;
-  padding: 5px 8px;
-}
 
 .local h2:after {
   content: " Your Timezone";
@@ -1252,6 +1272,14 @@ td {
 /* line 29, src/sass/components/_overrides.scss */
 .text-muted {
   color: #808080;
+}
+
+.text-info {
+  color: #0088cc;
+}
+
+.text-warning {
+  color: red;
 }
 
 /**
