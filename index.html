@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+	<meta charset="utf-8">
+
+	<!-- Force latest available IE rendering engine and Chrome Frame (if installed) -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+	<title>Timezones</title>
+	<meta name="description" content="A simple timezone converter">
+
+	<!-- Mobile Screen Resizing -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" type="text/css" href="assets/main.css">
+</head>
+<body>
+
+	<main id="main" class="container">
+
+		<h1 class="no-margin-bottom">Timezones</h1>
+		<p>Easily calculate timezones for your next meeting.</p>
+
+		<div id="app"></div>
+
+	</main>
+
+
+	<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+	<script>
+
+		//
+		// Variables
+		//
+
+		// new Date().toLocaleTimeString('en-US', {timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit'})
+		// Intl.DateTimeFormat().resolvedOptions().timeZone
+		// new Date().getTimezoneOffset()
+		var data = [
+			{
+				name: 'Hawaiian',
+				cities: ['Honolulu'],
+				locale: 'Pacific/Honolulu',
+				offset: -10,
+				active: false
+			},
+			{
+				name: 'Alaska',
+				cities: ['Fairbanks', 'Anchorage'],
+				locale: 'America/Anchorage',
+				offset: -9,
+				active: false
+			},
+			{
+				name: 'US Pacific',
+				cities: ['Seattle', 'San Francisco', 'Palo Alto'],
+				locale: 'America/Los_Angeles',
+				offset: -8,
+				active: true
+			},
+			{
+				name: 'US Mountain',
+				cities: ['Salt Lake City', 'Denver'],
+				locale: 'America/Denver',
+				offset: -7,
+				active: true
+			},
+			{
+				name: 'US Central',
+				cities: ['Chicago', 'Houston', 'Dallas', 'Austin'],
+				locale: 'America/Chicago',
+				offset: -6,
+				active: true
+			},
+			{
+				name: 'US Eastern',
+				cities: ['Boston', 'New York', 'Miami'],
+				locale: 'America/New_York',
+				offset: -5,
+				active: true
+			},
+			{
+				name: 'United Kingdom',
+				cities: ['Dublin', 'London', 'Cardif'],
+				locale: 'Europe/London',
+				offset: 0,
+				active: true
+			},
+			{
+				name: 'Central European',
+				cities: ['Oslo', 'Stockholm', 'Paris', 'Amersterdam', 'Madrid', 'Barcelona', 'Rome'],
+				locale: 'Europe/Rome',
+				offset: 1,
+				active: true
+			},
+			{
+				name: 'Eastern European',
+				cities: ['Helsinki', 'Sofia', 'Athens', 'Cairo'],
+				locale: 'Europe/Athens',
+				offset: 2,
+				active: true
+			},
+			{
+				name: 'Central African',
+				cities: ['Johannesburg', 'Cape Town'],
+				locale: 'Africa/Johannesburg',
+				offset: 2,
+				active: true
+			},
+			{
+				name: 'Moscow',
+				cities: ['Moscow', 'Minsk'],
+				locale: 'Europe/Moscow',
+				offset: 3,
+				active: false
+			},
+			{
+				name: 'Indian',
+				cities: ['Mumbai', 'Bangalore'],
+				locale: 'Asia/Kolkata',
+				offset: 5.5,
+				active: true
+			},
+			{
+				name: 'China',
+				cities: ['Beijing', 'Shanghai'],
+				locale: 'Asia/Shanghai',
+				offset: 8,
+				active: true
+			},
+			{
+				name: 'Hong Kong',
+				cities: ['Hong Kong'],
+				locale: 'Asia/Hong_Kong',
+				offset: 8,
+				active: false
+			},
+			{
+				name: 'Japan',
+				cities: ['Tokyo'],
+				locale: 'Asia/Tokyo',
+				offset: 9,
+				active: true
+			},
+			{
+				name: 'Eastern Australia',
+				cities: ['Sydney', 'Melbourne'],
+				locale: 'Australia/Sydney',
+				offset: 10,
+				active: true
+			},
+			{
+				name: 'Eastern Autralia - Queensland',
+				cities: ['Cairns', 'Brisbane'],
+				locale: 'Australia/Brisbane',
+				offset: 10,
+				active: true
+			},
+			{
+				name: 'Western Australia',
+				cities: ['Perth'],
+				locale: 'Australia/Perth',
+				offset: 8,
+				active: true
+			},
+			{
+				name: 'New Zealand',
+				cities: ['Auckland', 'Wellington'],
+				locale: 'Pacific/Auckland',
+				offset: 12,
+				active: true
+			}
+		];
+
+		/**
+		 * Get the standard UTC offset time for a location
+		 * @param  {Object}  date The Date() object
+		 * @return {Integer} The standard UTC offset
+		 */
+		var getStandardTimezoneOffset = function (date) {
+			var year = date.getFullYear();
+			var jan = new Date(year, 0, 1);
+			var jul = new Date(year, 6, 1);
+			return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+		};
+
+		/**
+		 * Get the timezone UTC offset in hours
+		 * @param  {Object} date The Date() object
+		 * @return {Number}      The UTC offset in hours
+		 */
+		var getOffset = function (date) {
+			return getStandardTimezoneOffset(date) / -60;
+		};
+
+		/**
+		 * Check if DST is currently observed
+		 * @param  {Object} date The Date() object
+		 * @return {Boolean}     If true, it's currently DST in this locale
+		 */
+		var isDSTObserved = function (date) {
+			return date.getTimezoneOffset() < getStandardTimezoneOffset(date);
+		};
+
+		var renderTimeOptions = function () {
+			var ante = ['AM', 'PM'];
+			var hours = ['12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
+			var minutes = ['00', '30'];
+			var times = '';
+			ante.forEach(function (a) {
+				hours.forEach(function (hour) {
+					minutes.forEach(function (min) {
+						var time = hour + ':' + min + ' ' + a;
+						times += '<option value="' + time + '">' + time + '</option>';
+					});
+				});
+			});
+			return times;
+		};
+
+		// Data
+		// {
+		// 	name: 'Alaska',
+		// 	cities: ['Fairbanks', 'Anchorage'],
+		// 	locale: 'America/Anchorage',
+		// 	offset: -9,
+		// 	active: true
+		// }
+		var renderTimezone = function (timezone, index) {
+			var content =
+				'<div class="timezone margin-bottom-small" data-offset="' + timezone.offset + '">' +
+					'<h2 class="no-padding-top no-margin-bottom">' + timezone.name + '</h2>' +
+					'<div class="row">' +
+						'<div class="grid-two-fifths margin-bottom-small">' +
+							'<span class="text-muted text-small" data-type="cities">' + timezone.cities.join(', ') + '</span>' +
+						'</div>' +
+						'<div class="grid-fifth" data-type="times">' +
+							'<label class="screen-reader">Time</label>' +
+							'<select data-type="time" data-locale="' + timezone.locale + '">' +
+								renderTimeOptions() +
+							'</select>' +
+						'</div>' +
+						'<div class="grid-two-fifths"></div>' +
+					'</div>' +
+				'</div>';
+
+			return content;
+		};
+
+		var renderApp = function () {
+			var app = document.querySelector('#app');
+			var content = '';
+			data.forEach(function (timezone, index) {
+				if (!timezone.active) return;
+				content += renderTimezone(timezone, index);
+			});
+			app.innerHTML = content;
+		};
+
+		var getCurrentTime = function () {
+			var date = new Date();
+			var minutes = date.getMinutes() > 30 ? 0 : 30;
+			date.setMinutes(minutes);
+			if (minutes === 0) {
+				date.setHours(date.getHours() + 1);
+			}
+			return date;
+		};
+
+		var getLocation = function (date) {
+			var offset = getOffset(date);
+			return document.querySelector('.timezone[data-offset="' + offset + '"]');
+		};
+
+		var setLocation = function (local) {
+			if (!local) return;
+			local.classList.add('local');
+		};
+
+		var getTime = function (date, locale) {
+			return date.toLocaleTimeString('en-US', {timeZone: locale, hour: '2-digit', minute: '2-digit'});
+		};
+
+		var setTimes = function (date, timezones) {
+			timezones.forEach(function (timezone) {
+				var time = getTime(date, timezone.getAttribute('data-locale'));
+				timezone.value = time;
+			});
+		};
+
+
+		//
+		// Inits & Event Listeners
+		//
+
+		var date = getCurrentTime();
+
+		// Render the app
+		renderApp();
+
+		// Get the current location offset
+		var local = getLocation(date);
+		setLocation(local);
+
+		// Set the current time
+		var timezones = Array.from(document.querySelectorAll('[data-type="time"]'));
+		setTimes(date, timezones);
+
+		// Detect time changes
+		document.addEventListener('change', function (event) {
+			if (!event.target.matches('[data-type="time"]')) return;
+			setTimes(new Date(date.getMonth() + ' ' + date.getDate() + ', ' + date.getFullYear() + ' ' + event.target.value), timezones);
+			event.target.blur();
+			event.target.focus();
+		}, false);
+
+	</script>
+</body>
+</html>
