@@ -17,7 +17,7 @@
 	<link rel="shortcut icon" href="favicon.ico">
 	<link rel="icon" sizes="16x16 32x32" href="favicon.ico">
 
-	<link rel="stylesheet" type="text/css" href="assets/main.css">
+	<link rel="stylesheet" type="text/css" href="assets/main.min.css">
 </head>
 <body>
 
@@ -327,7 +327,7 @@
 							'<span class="text-muted text-small" data-type="cities">' + timezone.cities.join(', ') + '</span>' +
 						'</div>' +
 						'<div class="grid-fifth" data-type="times">' +
-							'<label class="screen-reader" for="time-' + index + '">Time</label>' +
+							'<label class="screen-reader" for="time-' + index + '">Time in ' + timezone.name + '</label>' +
 							'<select class="margin-bottom-small" data-type="time" data-locale="' + timezone.locale + '" data-time-shift="' + getTimeShift(date, timezone.locale) + '" id="time-' + index + '">' +
 								renderTimeOptions(current) +
 							'</select>' +
