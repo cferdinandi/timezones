@@ -26,7 +26,10 @@
 	<main id="main" class="container">
 
 		<h1 class="no-margin-bottom">Timezones</h1>
-		<p>Easily calculate timezones for your next meeting.</p>
+		<p class="no-margin-bottom">Easily calculate timezones for your next meeting.</p>
+		<p>
+			<a role="button" data-copy-deep-link href="#">Copy link to this time</a>
+		</p>
 
 		<div id="app"></div>
 
@@ -35,12 +38,6 @@
 
 	<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
 	<script>
-		// @todo
-		// 1. Add UTC offset info
-		// 2. Allow timezones to be hidden
-		// 3. Create deep-linking functionality
-		// 4. Add a date picker
-
 		;(function (window, document, undefined) {
 
 			'use strict';
@@ -285,7 +282,15 @@
 				var gmt = new Date(date.toLocaleString('en-US', {timeZone: 'UTC'})).getTime();
 				var shift = (current - gmt) / 60 / 1000 / 60;
 				return Math.floor(shift);
-			}
+			};
+
+			var gmtToLocal = function (date, gmt) {
+				var time = new Date();
+				var selected = gmt.split(':');
+				var shift = convertMinutes(getTimeShift(date, 'UTC'));
+				time.setHours(parseInt(selected[0], 10) + shift.hours, parseInt(selected[1], 10) + shift.minutes, '00');
+				return time;
+			};
 
 			/**
 			 * Get a date in a particular locale
@@ -345,6 +350,13 @@
 					select.value = getTime(date, locale);
 					setDateMessage(date, locale, timezone);
 				});
+			};
+
+			var updateDeepLink = function (time) {
+				window.location.hash = getTime(time, 'UTC');
+				var button = document.querySelector('[data-copy-deep-link]');
+				if (!button) return;
+				button.href = window.location.href;
 			};
 
 			/**
@@ -417,6 +429,20 @@
 				app.innerHTML = content;
 			};
 
+			var renderDeepLink = function (date) {
+				var time = window.location.hash.slice(1);
+				if (!time) return;
+				var local = gmtToLocal(date, time);
+				var timezones = Array.from(document.querySelectorAll('.timezone'));
+				setTimes(local, timezones);
+			};
+
+			var renderDeepLinkButton = function () {
+				var button = document.querySelector('[data-copy-deep-link]');
+				if (!button) return;
+				button.href = window.location.href;
+			};
+
 			var handleTimechange = function (event) {
 
 				if (!event.target.matches('[data-type="time"]')) return;
@@ -429,6 +455,45 @@
 				time.setHours(parseInt(selected[0], 10) + shift.hours, parseInt(selected[1], 10) + shift.minutes, '00');
 
 				setTimes(time, timezones);
+				updateDeepLink(time);
+
+			};
+
+			var handleClicks = function (event) {
+
+				if (!event.target.closest('[data-copy-deep-link]')) return;
+				event.preventDefault();
+
+				// Create an input with the URL
+				var input = document.createElement('input');
+				input.value = window.location.href;
+				event.target.before(input);
+
+				// Copy the input text
+				input.select();
+				document.execCommand('copy');
+
+				// Remove the input and return focus
+				input.remove();
+				event.target.focus();
+
+				// Display copied status message
+				var original = event.target.textContent;
+				event.target.textContent = 'Copied...';
+				window.setTimeout(function () {
+					event.target.textContent = original;
+				}, 350);
+
+			};
+
+			var init = function () {
+
+				var date = getCurrentTime(new Date());
+
+				// Render the app
+				renderApp(date);
+				renderDeepLink(date);
+				renderDeepLinkButton();
 
 			};
 
@@ -437,18 +502,14 @@
 			// Inits & Event Listeners
 			//
 
-			var date = getCurrentTime(new Date());
-
-			// Render the app
-			renderApp(date);
+			// Initialize the plugin
+			init();
 
 			// Detect time changes
 			document.addEventListener('change', handleTimechange, false);
 
-			// Update the time every 15 minutes
-			window.setTimeout(function () {
-				date = getCurrentTime(new Date());
-			}, 1000 * 60 * 15);
+			// Activate copy deep link
+			document.addEventListener('click', handleClicks, false);
 
 		})(window, document);
 	</script>
